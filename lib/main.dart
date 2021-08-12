@@ -146,7 +146,24 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Colors.white,
                   ),
                   tooltip: 'Search',
-                  onPressed: () async {},
+                  onPressed: () async {
+                    List places = await locationFromAddress(
+                        _destinationLocationTextController.text);
+                    _destinationPosition = Position(
+                        longitude: places[0].longitude,
+                        latitude: places[0].latitude);
+                    _layerController.insertMarker(1);
+
+                    //1 mile = 0.000621371 * meters
+                    setState(() {
+                      _distanceInMiles = distanceBetween(
+                          _currentPosition.latitude,
+                          _currentPosition.longitude,
+                          _destinationPosition.latitude,
+                          _destinationPosition.longitude) *
+                          0.000621371;
+                    });
+                  },
                 )
               ],
             ),
@@ -165,6 +182,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             return MapMarker(
                                 latitude: _currentPosition.latitude,
                                 longitude: _currentPosition.longitude,
+                                child: Icon(Icons.location_on));
+                          } else if (index == 1) {
+                            //destination position
+                            return MapMarker(
+                                latitude: _destinationPosition.latitude,
+                                longitude: _destinationPosition.longitude,
                                 child: Icon(Icons.location_on));
                           }
                           return MapMarker(
