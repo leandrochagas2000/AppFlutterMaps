@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
 void main() {
@@ -43,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   double? _distanceInMiles;
 
-  //Position _currentPosition, _destinationPosition;
+  late Position _currentPosition, _destinationPosition;
 
   @override
   void dispose() {
@@ -102,7 +104,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Colors.white,
                   ),
                   tooltip: 'My location',
-                  onPressed: () async {},
+                  onPressed: () async {
+                    _currentPosition = await getCurrentPosition(
+                        desiredAccuracy: LocationAccuracy.high);
+                    List addresses = await placemarkFromCoordinates(
+                        _currentPosition.latitude, _currentPosition.longitude);
+                    _currentLocationTextController.text = addresses[0].name;
+                    _layerController.insertMarker(0);
+                  },
                 )
               ],
             ),
@@ -150,6 +159,19 @@ class _MyHomePageState extends State<MyHomePage> {
                     layers: [
                       MapShapeLayer(
                         controller: _layerController,
+                        markerBuilder: (BuildContext context, int index) {
+                          if (index == 0) {
+                            //current position
+                            return MapMarker(
+                                latitude: _currentPosition.latitude,
+                                longitude: _currentPosition.longitude,
+                                child: Icon(Icons.location_on));
+                          }
+                          return MapMarker(
+                            latitude: 38.8951,
+                            longitude: -77.0364,
+                          );
+                        },
                         source: MapShapeSource.asset('assets/usa.json',
                             shapeDataField: 'name'),
 
