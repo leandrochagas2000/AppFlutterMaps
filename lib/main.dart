@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -44,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _destinationLocationTextController = TextEditingController();
 
   double? _distanceInMiles;
+  Stream<Position>? _positionStream;
 
   late Position _currentPosition, _destinationPosition;
 
@@ -189,6 +192,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                 latitude: _destinationPosition.latitude,
                                 longitude: _destinationPosition.longitude,
                                 child: Icon(Icons.location_on));
+                          } else if (index == 2) {
+                            //flight current position
+                            return MapMarker(
+                              latitude: _currentPosition.latitude,
+                              longitude: _currentPosition.longitude,
+                              child: Transform.rotate(
+                                  angle: 45,
+                                  child: Icon(Icons.flight)),
+                            );
                           }
                           return MapMarker(
                             latitude: 38.8951,
@@ -240,14 +252,33 @@ class _MyHomePageState extends State<MyHomePage> {
                         OutlineButton(
                           child: Text('Navigate'),
                           textColor: Colors.black,
-                          onPressed: () async {},
+                          onPressed: () async {
+                            _layerController.insertMarker(2);
+                            _positionStream = getPositionStream()
+                                .listen((Position position) {
+                              _currentPosition = position;
+                              //1 mile = 0.000621371 * meters
+                              setState(() {
+                                _distanceInMiles = distanceBetween(
+                                    _currentPosition.latitude,
+                                    _currentPosition.longitude,
+                                    _destinationPosition.latitude,
+                                    _destinationPosition.longitude) *
+                                    0.000621371;
+                              });
+                              _layerController.updateMarkers([2]);
+                            }) as Stream<Position>?;
+                          },
                         ),
                         SizedBox(
                           width: 15,
                         ),
                         OutlineButton(
                           child: Text('Remove tracker'),
-                          onPressed: () {},
+                          onPressed: () {
+                            _layerController.removeMarkerAt(2);
+                           //_positionStream.cancel();
+                          },
                         )
                       ],
                     ),
