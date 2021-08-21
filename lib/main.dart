@@ -1,9 +1,11 @@
 import 'dart:async';
-
+import "package:audioplayers/audio_cache.dart";
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
+
 
 void main() {
   runApp(MyApp());
@@ -40,7 +42,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late MapShapeSource _shapeSource;
 
-
+  static AudioCache player = AudioCache();
   final MapShapeLayerController _layerController = MapShapeLayerController();
   final TextEditingController _currentLocationTextController = TextEditingController();
   final TextEditingController _destinationLocationTextController = TextEditingController();
@@ -57,6 +59,39 @@ class _MyHomePageState extends State<MyHomePage> {
     _destinationLocationTextController.dispose();
     super.dispose();
   }
+
+
+  // Criar alerta e chamada de Musica aqui
+  showAlertDialog1(BuildContext context)
+  {
+    // configura o button
+    Widget okButton = FlatButton(
+      child: Text("OK"),
+      onPressed: () { },
+    );
+    // configura o  AlertDialog
+    AlertDialog alerta = AlertDialog(
+      title: Text("Promoção Imperdivel"),
+      content: Text("Não perca a promoção."),
+      actions: [
+        okButton,
+      ],
+    );
+    // exibe o dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
+  }
+
+ //  Adicionar musica
+ // tocarMusica(){
+
+ //   final player = AudioCache();
+//    player.play('feel_good.wav');
+ // }
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +192,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         latitude: places[0].latitude);
                     _layerController.insertMarker(1);
 
+
+
+
                     //1 mile = 0.000621371 * meters
                     setState(() {
                       _distanceInMiles = distanceBetween(
@@ -165,7 +203,13 @@ class _MyHomePageState extends State<MyHomePage> {
                           _destinationPosition.latitude,
                           _destinationPosition.longitude) *
                           0.000621371;
+
+
+
+
                     });
+
+
                   },
                 )
               ],
@@ -207,8 +251,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             longitude: -77.0364,
                           );
                         },
-                        source: MapShapeSource.asset('assets/usa.json',
-                            shapeDataField: 'name'),
+                        source: MapShapeSource.asset('assets/maps_brazil_boundary.json',
+                            shapeDataField: 'brazil'),
 
 
                       ),
@@ -253,6 +297,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Text('Navigate'),
                           textColor: Colors.black,
                           onPressed: () async {
+                            AudioCache player = new AudioCache();
+                            const alarmAudioPath = "fell_good.wav";
+                            player.play(alarmAudioPath);
+                            //player.play('fell_good.wav');
                             _layerController.insertMarker(2);
                             _positionStream = getPositionStream()
                                 .listen((Position position) {
@@ -266,8 +314,19 @@ class _MyHomePageState extends State<MyHomePage> {
                                     _destinationPosition.longitude) *
                                     0.000621371;
                               });
+
+
+
+                              if (_distanceInMiles! < 30) {
+                                _layerController.removeMarkerAt(2);
+                                final player = AudioCache();
+                                player.play('feel_good.wav');
+                              }
+
+
                               _layerController.updateMarkers([2]);
-                            }) as Stream<Position>?;
+                            }
+                            ) as Stream<Position>?;
                           },
                         ),
                         SizedBox(
@@ -276,7 +335,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         OutlineButton(
                           child: Text('Remove tracker'),
                           onPressed: () {
+                            final player = AudioCache();
+                            player.play('feel_good.wav');
+                           // const alarmAudioPath = "feel_good.wav";
+                           // player.play(alarmAudioPath);
+
                             _layerController.removeMarkerAt(2);
+
+
                            //_positionStream.cancel();
                           },
                         )
